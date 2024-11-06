@@ -31,17 +31,32 @@ data:
     exporters:
       logging:
         loglevel: debug
+      otlphttp/traces:
+        traces_endpoint: "https://__REPLACE_WITH_OtelTraces_ENDPOINT__/v1/traces"
+        auth:
+          authenticator: sigv4auth
+        compression: none
+      otlphttp/logs:
+        logs_endpoint: "https://__REPLACE_WITH_OtelLogs_ENDPOINT__/v1/logs"
+        auth:
+          authenticator: sigv4auth
+        compression: none        
+      otlphttp/metrics:
+        metrics_endpoint: "https://__REPLACE_WITH_OtelMetrics_ENDPOINT__/v1/metrics"
+        auth:
+          authenticator: sigv4auth
+        compression: none
       
     service:
       extensions: [sigv4auth]
       pipelines:
         traces:
           receivers: [otlp]
-          exporters: [logging]
+          exporters: [logging, otlphttp/traces]
         logs:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [logging]
+          exporters: [logging, otlphttp/logs]
         metrics:
           receivers: [otlp]
-          exporters: [logging]
+          exporters: [logging, otlphttp/metrics]
