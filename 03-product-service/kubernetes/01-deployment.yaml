@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: product-service
+  name: product-service
+  namespace: product-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+      - image: 654654242714.dkr.ecr.us-east-1.amazonaws.com/product-service
+        name: product-service
+        ports:
+        - containerPort: 5002
+        resources: # Verify the amount of requests
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        env:
+        - name: OTLP
+          value: "otel-collector.otel-collector.svc.cluster.local"
+        - name: USERSERVICE
+          value: "user-service.user-service.svc.cluster.local"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: product-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 5002
+  selector:
+    app: product-service

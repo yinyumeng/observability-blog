@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: otel-collector
+data:
+  otel-collector-config.yml: |
+    extensions:
+      sigv4auth:
+        region: "__AWS_REGION__"
+        service: "osis"
+
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: "0.0.0.0:55680"
+          http:
+            endpoint: "0.0.0.0:55681"
+
+            
+    processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 80
+        spike_limit_percentage: 30
+      batch:
+        send_batch_size: 10
+        timeout: 5s
+    
+    exporters:
+      logging:
+        loglevel: debug
+      
+    service:
+      extensions: [sigv4auth]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [logging]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [logging]
+        metrics:
+          receivers: [otlp]
+          exporters: [logging]
